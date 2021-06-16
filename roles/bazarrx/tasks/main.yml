@@ -1,0 +1,33 @@
+#########################################################################
+# Title:            Community: BazarrX                                  #
+# Author(s):        Migz93                                              #
+# URL:              https://github.com/Cloudbox/Community               #
+# Docker Image(s):  linuxserver/bazarr                                  #
+# --                                                                    #
+#         Part of the Cloudbox project: https://cloudbox.works          #
+#########################################################################
+#                   GNU General Public License v3.0                     #
+#########################################################################
+---
+- name: "Gather list of bazarrx Docker containers"
+  shell: "docker ps -a --format '{{ '{{' }} .Names{{ '}}' }}' --filter label=com.github.cloudbox.community=bazarrx | xargs echo -n"
+  register: cloudbox_community_bazarrx
+  ignore_errors: yes
+
+- name: "Stop all bazarrx Docker containers"
+  shell: "docker stop {{ cloudbox_community_bazarrx.stdout }}"
+  ignore_errors: yes
+  when: (cloudbox_community_bazarrx.stdout | trim | length > 0)
+
+- name: "Remove all bazarrx Docker containers"
+  shell: "docker rm {{ cloudbox_community_bazarrx.stdout }}"
+  ignore_errors: yes
+  when: (cloudbox_community_bazarrx.stdout | trim | length > 0)
+
+- name: "Execute BazarrX roles"
+  include_tasks: template.yml
+  vars:
+    rolename: "{{ role }}"
+  with_items: "{{ bazarrx.roles }}"
+  loop_control:
+    loop_var: role
